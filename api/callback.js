@@ -60,10 +60,21 @@ module.exports = async (req, res) => {
     console.log('User data:', userData);
 
     // حفظ token في cookie آمن - FIXED
-    // استخدام SameSite=Lax بدلاً من None لأنها أكثر أماناً ولا تحتاج Secure في dev
+    // في production، نستخدم SameSite=None مع Secure
+    // في development، نستخدم SameSite=Lax بدون Secure
+    const isProd = process.env.NODE_ENV === 'production' || req.headers.host.includes('vercel.app');
+    
+    const cookieOptions = isProd 
+      ? 'HttpOnly; Path=/; Max-Age=604800; SameSite=None; Secure'
+      : 'HttpOnly; Path=/; Max-Age=604800; SameSite=Lax';
+    
+    const userCookieOptions = isProd
+      ? 'Path=/; Max-Age=604800; SameSite=None; Secure'
+      : 'Path=/; Max-Age=604800; SameSite=Lax';
+
     res.setHeader('Set-Cookie', [
-      `discord_token=${tokenData.access_token}; HttpOnly; Path=/; Max-Age=604800; SameSite=Lax${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`,
-      `user_data=${encodeURIComponent(JSON.stringify(userData))}; Path=/; Max-Age=604800; SameSite=Lax${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`
+      `discord_token=${tokenData.access_token}; ${cookieOptions}`,
+      `user_data=${encodeURIComponent(JSON.stringify(userData))}; ${userCookieOptions}`
     ]);
 
     console.log('Cookies set. Redirecting to home page.');
