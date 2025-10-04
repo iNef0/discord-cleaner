@@ -8,10 +8,5 @@
     { "src": "/", "dest": "/public/index.html" },
     { "src": "/api/(.*)", "dest": "/api/$1" },
     { "src": "/(.*)", "dest": "/public/$1" }
-  ],
-  "env": {
-    "DISCORD_CLIENT_ID": "@discord-client-id",
-    "DISCORD_CLIENT_SECRET": "@discord-client-secret",
-    "REDIRECT_URI": "@redirect-uri"
-  }
+  ]
 }
