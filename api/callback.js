@@ -52,7 +52,7 @@ module.exports = async (req, res) => {
 
     // حفظ token في cookie آمن
     res.setHeader('Set-Cookie', [
-      `discord_token=${tokenData.access_token}; HttpOnly; Path=/; Max-Age=86400; SameSite=Lax; Secure`,
+      `discord_token=${tokenData.access_token}; HttpOnly; Path=/; Max-Age=86400; SameSite=Lax`,
       `user_data=${encodeURIComponent(JSON.stringify(userData))}; Path=/; Max-Age=86400; SameSite=Lax`
     ]);
 
