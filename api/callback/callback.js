@@ -5,20 +5,21 @@ const CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
 const REDIRECT_URI = process.env.REDIRECT_URI;
 
 module.exports = async (req, res) => {
-  console.log('=== CALLBACK INDEX CALLED ===');
-  console.log('URL:', req.url);
-  console.log('Query:', req.query);
-  console.log('Method:', req.method);
-  
   const { code, state } = req.query;
+  
+  // استخراج الـ state من الـ cookies
+  const cookieHeader = req.headers.cookie || '';
+  const cookies = Object.fromEntries(
+    cookieHeader.split(';').map(c => c.trim().split('='))
+  );
+  const storedState = cookies.oauth_state;
 
-  if (!code) {
-    return res.status(400).json({ error: 'No code provided' });
+  if (!state || state !== storedState) {
+    return res.redirect('/?error=invalid_state');
   }
 
   try {
-    console.log('Exchanging code for token...');
-    
+    // استبدال code بـ access token
     const tokenResponse = await fetch('https://discord.com/api/oauth2/token', {
       method: 'POST',
       headers: {
@@ -35,14 +36,12 @@ module.exports = async (req, res) => {
     });
 
     const tokenData = await tokenResponse.json();
-    
+
     if (!tokenData.access_token) {
-      console.log('Token error:', tokenData);
-      return res.redirect('/?error=no_token');
+      return res.redirect('/?error=authentication_failed');
     }
 
-    console.log('Token received, getting user info...');
-    
+    // الحصول على بيانات المستخدم
     const userResponse = await fetch('https://discord.com/api/users/@me', {
       headers: {
         Authorization: `Bearer ${tokenData.access_token}`,
@@ -51,14 +50,15 @@ module.exports = async (req, res) => {
 
     const userData = await userResponse.json();
 
-    // Set cookies
+    // حفظ token في cookie آمن
+// حفظ token في cookie آمن
     res.setHeader('Set-Cookie', [
-      `discord_token=${tokenData.access_token}; Path=/; Max-Age=86400; SameSite=Lax`,
+      `discord_token=${tokenData.access_token}; HttpOnly; Path=/; Max-Age=86400; SameSite=Lax; Secure`,
       `user_data=${encodeURIComponent(JSON.stringify(userData))}; Path=/; Max-Age=86400; SameSite=Lax`
     ]);
 
-    console.log('Redirecting to main page...');
-    res.redirect('/');
+// إعادة التوجيه للصفحة الرئيسية
+res.redirect('/');
 
   } catch (error) {
     console.error('Callback error:', error);
