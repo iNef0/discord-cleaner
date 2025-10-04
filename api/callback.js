@@ -6,15 +6,21 @@ const REDIRECT_URI = process.env.REDIRECT_URI;
 
 module.exports = async (req, res) => {
   const { code, state } = req.query;
-  
+
+  console.log('Callback invoked');
+  console.log('Received code:', code);
+  console.log('Received state:', state);
+
   // استخراج الـ state من الـ cookies
   const cookieHeader = req.headers.cookie || '';
   const cookies = Object.fromEntries(
     cookieHeader.split(';').map(c => c.trim().split('='))
   );
   const storedState = cookies.oauth_state;
+  console.log('Stored state from cookies:', storedState);
 
   if (!state || state !== storedState) {
+    console.warn('State mismatch!');
     return res.redirect('/?error=invalid_state');
   }
 
@@ -36,8 +42,10 @@ module.exports = async (req, res) => {
     });
 
     const tokenData = await tokenResponse.json();
+    console.log('Token response:', tokenData);
 
     if (!tokenData.access_token) {
+      console.error('No access token received!');
       return res.redirect('/?error=authentication_failed');
     }
 
@@ -49,16 +57,19 @@ module.exports = async (req, res) => {
     });
 
     const userData = await userResponse.json();
+    console.log('User data:', userData);
 
-    // حفظ token في cookie آمن
-// حفظ token في cookie آمن
+    // حفظ token في cookie آمن - FIXED
+    // استخدام SameSite=Lax بدلاً من None لأنها أكثر أماناً ولا تحتاج Secure في dev
     res.setHeader('Set-Cookie', [
-      `discord_token=${tokenData.access_token}; HttpOnly; Path=/; Max-Age=86400; SameSite=Lax; Secure`,
-      `user_data=${encodeURIComponent(JSON.stringify(userData))}; Path=/; Max-Age=86400; SameSite=Lax`
+      `discord_token=${tokenData.access_token}; HttpOnly; Path=/; Max-Age=604800; SameSite=Lax${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`,
+      `user_data=${encodeURIComponent(JSON.stringify(userData))}; Path=/; Max-Age=604800; SameSite=Lax${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`
     ]);
 
-// إعادة التوجيه للصفحة الرئيسية
-res.redirect('/');
+    console.log('Cookies set. Redirecting to home page.');
+
+    // إعادة التوجيه للصفحة الرئيسية
+    res.redirect('/');
 
   } catch (error) {
     console.error('Callback error:', error);

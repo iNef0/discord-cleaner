@@ -4,7 +4,7 @@
   "description": "Discord DM Cleaner with OAuth2",
   "main": "index.js",
   "scripts": {
-    "dev": "vercel dev"
+    "dev": "node api/callback.js"
   },
   "dependencies": {
     "node-fetch": "^2.6.7"
