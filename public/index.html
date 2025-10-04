@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord DM Cleaner Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #5865F2;
+            font-size: 32px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 20px;
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            height: fit-content;
+        }
+
+        .content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            min-height: 600px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #5865F2;
+            box-shadow: 0 0 0 3px rgba(88,101,242,0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-primary {
+            background: #5865F2;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #4752C4;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(88,101,242,0.4);
+        }
+
+        .btn-danger {
+            background: #ed4245;
+            color: white;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: #c03537;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(237,66,69,0.4);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: #218838;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #5865F2;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .user-list {
+            max-height: 500px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .user-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .user-item:hover {
+            border-color: #5865F2;
+            background: #f8f9ff;
+        }
+
+        .user-item.selected {
+            border-color: #5865F2;
+            background: #e8ebff;
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            margin-left: 12px;
+            background: #5865F2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 3px;
+            font-size: 14px;
+        }
+
+        .user-last-message {
+            font-size: 12px;
+            color: #999;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+            cursor: pointer;
+        }
+
+        .filter-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .filter-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .filter-btn {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .filter-btn:hover {
+            border-color: #5865F2;
+            background: #f8f9ff;
+        }
+
+        .filter-btn.active {
+            border-color: #5865F2;
+            background: #5865F2;
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            color: white;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .progress-section {
+            display: none;
+            margin-top: 25px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 35px;
+            background: #e0e0e0;
+            border-radius: 17px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #5865F2, #7289da);
+            width: 0%;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .log {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            display: none;
+        }
+
+        .log-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid #dee2e6;
+            color: #495057;
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-entry.success { color: #28a745; }
+        .log-entry.error { color: #dc3545; }
+        .log-entry.warning { color: #ffc107; }
+        .log-entry.info { color: #17a2b8; }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .search-box input {
+            padding-right: 40px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #856404;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .select-all-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .select-all-section label {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .note {
+            background: #e7f3ff;
+            border-right: 4px solid #2196F3;
+            padding: 12px 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-size: 12px;
+            color: #0c5460;
+        }
+
+        .user-info-card {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .user-info-card img {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 968px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                <span>💬</span>
+                Discord DM Cleaner Pro
+            </h1>
+            <p>حذف رسائلك من المحادثات الخاصة - نسخة الويب الكاملة</p>
+        </div>
+
+        <div class="main-grid">
+            <!-- Sidebar -->
+            <div class="sidebar" id="sidebar">
+                <div class="section-title">
+                    🔐 تسجيل الدخول
+                </div>
+
+                <!-- قسم تسجيل الدخول -->
+                <div id="loginSection">
+                    <div class="input-group">
+                        <p style="text-align: center; color: #666; margin-bottom: 20px;">
+                            سجل الدخول باستخدام حساب Discord الخاص بك
+                        </p>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="loginWithDiscord()">
+                        🚀 تسجيل الدخول عبر Discord
+                    </button>
+
+                    <div class="note">
+                        <strong>💡 المميزات:</strong><br>
+                        • تسجيل دخول آمن<br>
+                        • لا يتم تخزين كلمات المرور<br>
+                        • صلاحيات محدودة فقط
+                    </div>
+                </div>
+
+                <!-- معلومات المستخدم -->
+                <div id="userInfo" style="display: none;">
+                    <div class="user-info-card">
+                        <img id="userAvatar" src="" style="background: #5865F2;">
+                        <h4 id="userName" style="margin-bottom: 5px;"></h4>
+                        <p id="userEmail" style="color: #666; font-size: 12px;"></p>
+                    </div>
+
+                    <button class="btn btn-danger" onclick="logout()" style="margin-top: 10px;">
+                        🚪 تسجيل الخروج
+                    </button>
+                </div>
+
+                <!-- Filter Section -->
+                <div id="filterSection" style="display: none; margin-top: 30px;">
+                    <div class="section-title">
+                        📅 فلترة حسب التاريخ
+                    </div>
+
+                    <div class="filter-section">
+                        <div class="filter-buttons">
+                            <button class="filter-btn" onclick="setTimeFilter('day')">آخر 24 ساعة</button>
+                            <button class="filter-btn" onclick="setTimeFilter('week')">آخر أسبوع</button>
+                            <button class="filter-btn" onclick="setTimeFilter('month')">آخر شهر</button>
+                            <button class="filter-btn active" onclick="setTimeFilter('all')">الكل</button>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-danger" id="deleteBtn" onclick="startDeleting()" style="display: none;">
+                        🗑️ حذف الرسائل المحددة
+                    </button>
+
+                    <button class="btn btn-danger" id="stopBtn" onclick="stopDeleting()" style="display: none;">
+                        ⏹️ إيقاف
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="content" id="mainContent">
+                <div class="empty-state" id="emptyState">
+                    <div class="empty-state-icon">🔒</div>
+                    <h3>مرحباً بك في Discord DM Cleaner Pro</h3>
+                    <p>قم بتسجيل الدخول للبدء في حذف رسائلك</p>
+                </div>
+
+                <!-- User Selection -->
+                <div id="userSelection" style="display: none;">
+                    <div class="warning-box">
+                        ⚠️ تحذير: الرسائل المحذوفة لا يمكن استرجاعها نهائياً
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-number" id="totalDMs">0</span>
+                            <span class="stat-label">محادثات خاصة</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-number" id="selectedCount">0</span>
+                            <span class="stat-label">محادثات محددة</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-number" id="deletedCount">0</span>
+                            <span class="stat-label">رسائل محذوفة</span>
+                        </div>
+                    </div>
+
+                    <div class="section-title">
+                        👥 اختر المحادثات
+                    </div>
+
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="ابحث باسم المستخدم أو اليوزر نيم..." onkeyup="filterUsers()">
+                        <span class="search-icon">🔍</span>
+                    </div>
+
+                    <div class="select-all-section">
+                        <label>
+                            <input type="checkbox" class="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()">
+                            تحديد الكل
+                        </label>
+                        <span style="font-size: 13px; color: #666;">
+                            <span id="selectedCountText">0</span> محدد
+                        </span>
+                    </div>
+
+                    <div class="user-list" id="userList"></div>
+
+                    <div class="progress-section" id="progressSection">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill">0%</div>
+                        </div>
+                        <div style="text-align: center; color: #666; font-size: 14px;" id="statusText">
+                            جاري الحذف...
+                        </div>
+                    </div>
+
+                    <div class="log" id="log"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin + '/api';
+        
+        let userId = null;
+        let dmChannels = [];
+        let selectedChannels = [];
+        let timeFilter = 'all';
+        let shouldStop = false;
+        let stats = {
+            totalDMs: 0,
+            selected: 0,
+            deleted: 0
+        };
+
+        // التحقق من حالة المستخدم عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', checkAuthStatus);
+
+        async function checkAuthStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/user?endpoint=users/@me`, {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const userData = await response.json();
+                    if (userData.error) {
+                        throw new Error(userData.error);
+                    }
+                    showUserInfo(userData);
+                    await loadDMChannels();
+                } else {
+                    showLoginSection();
+                }
+            } catch (error) {
+                console.log('User not authenticated:', error);
+                showLoginSection();
+            }
+        }
+
+        function loginWithDiscord() {
+            window.location.href = `${API_BASE}/auth`;
+        }
+
+        function logout() {
+            window.location.href = `${API_BASE}/logout`;
+        }
+
+        function showUserInfo(userData) {
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('userInfo').style.display = 'block';
+            document.getElementById('filterSection').style.display = 'block';
+            
+            document.getElementById('userName').textContent = userData.global_name || userData.username;
+            document.getElementById('userEmail').textContent = userData.email || '';
+            
+            if (userData.avatar) {
+                const avatarUrl = `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png?size=128`;
+                document.getElementById('userAvatar').src = avatarUrl;
+            } else {
+                // صورة افتراضية إذا لم يكن هناك صورة
+                const defaultAvatar = document.getElementById('userAvatar');
+                defaultAvatar.src = '';
+                defaultAvatar.style.backgroundColor = '#5865F2';
+                defaultAvatar.style.display = 'flex';
+                defaultAvatar.style.alignItems = 'center';
+                defaultAvatar.style.justifyContent = 'center';
+                defaultAvatar.style.color = 'white';
+                defaultAvatar.style.fontWeight = 'bold';
+                defaultAvatar.textContent = (userData.username || 'U')[0].toUpperCase();
+            }
+            
+            userId = userData.id;
+            showUserSelection();
+        }
+
+        function showLoginSection() {
+            document.getElementById('loginSection').style.display = 'block';
+            document.getElementById('userInfo').style.display = 'none';
+            document.getElementById('filterSection').style.display = 'none';
+            document.getElementById('userSelection').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'block';
+        }
+
+        // دالة للاتصال بـ Discord عبر السيرفر
+        async function discordAPI(endpoint, options = {}) {
+            const url = `${API_BASE}/user?endpoint=${encodeURIComponent(endpoint)}`;
+            
+            const response = await fetch(url, {
+                ...options,
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                }
+            });
+
+            return response.json();
+        }
+
+        async function loadDMChannels() {
+            addLog('🔍 جاري تحميل المحادثات الخاصة...', 'info');
+
+            try {
+                const channels = await discordAPI('users/@me/channels');
+
+                if (channels.error) {
+                    throw new Error(channels.error);
+                }
+
+                dmChannels = channels.filter(ch => {
+                    if (ch.type !== 1 && ch.type !== 3) return false;
+                    const recipient = ch.recipients?.[0];
+                    return recipient && !recipient.bot;
+                });
+
+                dmChannels.sort((a, b) => {
+                    const timeA = a.last_message_id ? parseInt(a.last_message_id) : 0;
+                    const timeB = b.last_message_id ? parseInt(b.last_message_id) : 0;
+                    return timeB - timeA;
+                });
+
+                stats.totalDMs = dmChannels.length;
+                updateStats();
+
+                renderUserList();
+                addLog(`✅ تم تحميل ${dmChannels.length} محادثة خاصة`, 'success');
+            } catch (error) {
+                addLog(`❌ خطأ في تحميل المحادثات: ${error.message}`, 'error');
+                if (error.message.includes('401') || error.message.includes('Token')) {
+                    // إذا كان التوكن منتهي الصلاحية، إظهار قسم تسجيل الدخول
+                    showLoginSection();
+                }
+            }
+        }
+
+        function renderUserList() {
+            const userList = document.getElementById('userList');
+            userList.innerHTML = '';
+
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+            dmChannels.forEach(channel => {
+                const recipient = channel.recipients?.[0];
+                if (!recipient || recipient.bot) return;
+
+                const username = recipient.username || 'مستخدم';
+                const displayName = recipient.global_name || username;
+                const discriminator = recipient.discriminator || '0000';
+                const searchable = `${displayName} ${username} ${discriminator}`.toLowerCase();
+                
+                if (searchTerm && !searchable.includes(searchTerm)) return;
+
+                const avatarUrl = recipient.avatar 
+                    ? `https://cdn.discordapp.com/avatars/${recipient.id}/${recipient.avatar}.${recipient.avatar.startsWith('a_') ? 'gif' : 'png'}?size=128`
+                    : null;
+
+                const userItem = document.createElement('div');
+                userItem.className = 'user-item';
+                
+                const avatarStyle = avatarUrl 
+                    ? `background-image: url('${avatarUrl}'); background-size: cover; background-position: center; color: transparent;` 
+                    : '';
+                
+                const avatarContent = avatarUrl ? '' : username[0].toUpperCase();
+                const subName = displayName !== username 
+                    ? `@${username} • ${username}#${discriminator}`
+                    : `${username}#${discriminator}`;
+
+                userItem.innerHTML = `
+                    <input type="checkbox" class="checkbox" data-channel-id="${channel.id}">
+                    <div class="user-avatar" style="${avatarStyle}">${avatarContent}</div>
+                    <div class="user-info">
+                        <div class="user-name">${displayName}</div>
+                        <div class="user-last-message">${subName}</div>
+                    </div>
+                `;
+
+                const checkbox = userItem.querySelector('.checkbox');
+                checkbox.addEventListener('change', (e) => {
+                    if (e.target.checked) {
+                        selectedChannels.push(channel.id);
+                        userItem.classList.add('selected');
+                    } else {
+                        selectedChannels = selectedChannels.filter(id => id !== channel.id);
+                        userItem.classList.remove('selected');
+                    }
+                    updateSelectedCount();
+                });
+
+                userItem.addEventListener('click', (e) => {
+                    if (e.target.type !== 'checkbox') {
+                        checkbox.checked = !checkbox.checked;
+                        checkbox.dispatchEvent(new Event('change'));
+                    }
+                });
+
+                userList.appendChild(userItem);
+            });
+
+            if (userList.children.length === 0 && searchTerm) {
+                userList.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;">لم يتم العثور على نتائج</div>';
+            }
+        }
+
+        function filterUsers() {
+            renderUserList();
+        }
+
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAllCheckbox').checked;
+            const checkboxes = document.querySelectorAll('.user-item .checkbox');
+            
+            selectedChannels = [];
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAll;
+                const channelId = checkbox.dataset.channelId;
+                const userItem = checkbox.closest('.user-item');
+                
+                if (selectAll) {
+                    selectedChannels.push(channelId);
+                    userItem.classList.add('selected');
+                } else {
+                    userItem.classList.remove('selected');
+                }
+            });
+            
+            updateSelectedCount();
+        }
+
+        function updateSelectedCount() {
+            stats.selected = selectedChannels.length;
+            updateStats();
+            document.getElementById('selectedCountText').textContent = stats.selected;
+            
+            const deleteBtn = document.getElementById('deleteBtn');
+            if (stats.selected > 0) {
+                deleteBtn.style.display = 'block';
+            } else {
+                deleteBtn.style.display = 'none';
+            }
+        }
+
+        function setTimeFilter(filter) {
+            timeFilter = filter;
+            
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        function shouldDeleteMessage(messageTimestamp) {
+            if (timeFilter === 'all') return true;
+
+            const now = Date.now();
+            const msgTime = new Date(messageTimestamp).getTime();
+
+            const timeRanges = {
+                'day': 86400000,
+                'week': 604800000,
+                'month': 2592000000
+            };
+
+            return (now - msgTime) <= timeRanges[timeFilter];
+        }
+
+        async function startDeleting() {
+            if (selectedChannels.length === 0) {
+                alert('⚠️ الرجاء تحديد محادثة واحدة على الأقل');
+                return;
+            }
+
+            const filterDesc = {
+                'all': 'الكل',
+                'day': 'آخر 24 ساعة',
+                'week': 'آخر أسبوع',
+                'month': 'آخر شهر'
+            }[timeFilter];
+
+            const confirmMsg = `⚠️ هل أنت متأكد من حذف رسائلك في ${selectedChannels.length} محادثة؟\n\nالفلتر: ${filterDesc}\n\n⚡ الرسائل لا يمكن استرجاعها!`;
+
+            if (!confirm(confirmMsg)) return;
+
+            shouldStop = false;
+            stats.deleted = 0;
+            updateStats();
+
+            document.getElementById('deleteBtn').style.display = 'none';
+            document.getElementById('stopBtn').style.display = 'block';
+            document.getElementById('progressSection').style.display = 'block';
+            document.getElementById('log').style.display = 'block';
+            document.getElementById('log').innerHTML = '';
+
+            addLog('🚀 بدء عملية الحذف...', 'info');
+
+            for (let i = 0; i < selectedChannels.length && !shouldStop; i++) {
+                const channelId = selectedChannels[i];
+                const channel = dmChannels.find(ch => ch.id === channelId);
+                const username = channel?.recipients?.[0]?.username || 'مجهول';
+
+                addLog(`\n📱 معالجة محادثة ${i + 1}/${selectedChannels.length}: ${username}`, 'info');
+                
+                await deleteMessagesInChannel(channelId);
+                
+                updateProgress(i + 1, selectedChannels.length);
+            }
+
+            document.getElementById('deleteBtn').style.display = 'block';
+            document.getElementById('stopBtn').style.display = 'none';
+
+            if (!shouldStop) {
+                addLog(`\n🎉 اكتملت العملية! تم حذف ${stats.deleted} رسالة`, 'success');
+            } else {
+                addLog(`\n⏹️ تم إيقاف العملية - حُذفت ${stats.deleted} رسالة`, 'warning');
+            }
+        }
+
+        async function deleteMessagesInChannel(channelId) {
+            let beforeId = null;
+            let hasMore = true;
+            let channelDeleted = 0;
+
+            while (hasMore && !shouldStop) {
+                const endpoint = `channels/${channelId}/messages?limit=100${beforeId ? `&before=${beforeId}` : ''}`;
+                
+                try {
+                    const data = await discordAPI(endpoint);
+
+                    if (data.rateLimit && data.rateLimit.remaining === '0') {
+                        const waitTime = (parseInt(data.rateLimit.reset) * 1000) - Date.now();
+                        if (waitTime > 0) {
+                            addLog(`⏳ انتظار ${(waitTime/1000).toFixed(1)} ثانية...`, 'warning');
+                            await sleep(waitTime);
+                            continue;
+                        }
+                    }
+
+                    const messages = data.filter ? data : [];
+                    if (messages.length === 0) break;
+
+                    const myMessages = messages.filter(msg => 
+                        msg.author.id === userId && shouldDeleteMessage(msg.timestamp)
+                    );
+
+                    for (const message of myMessages) {
+                        if (shouldStop) break;
+
+                        const success = await deleteMessage(channelId, message.id);
+                        
+                        if (success) {
+                            stats.deleted++;
+                            channelDeleted++;
+                            updateStats();
+                        }
+
+                        await sleep(1200);
+                    }
+
+                    beforeId = messages[messages.length - 1].id;
+                    
+                    if (messages.length < 100) hasMore = false;
+
+                    await sleep(1000);
+
+                } catch (error) {
+                    addLog(`❌ خطأ: ${error.message}`, 'error');
+                    await sleep(3000);
+                    break;
+                }
+            }
+
+            addLog(`   ✅ تم حذف ${channelDeleted} رسالة من هذه المحادثة`, 'success');
+        }
+
+        async function deleteMessage(channelId, messageId) {
+            try {
+                const data = await discordAPI(`channels/${channelId}/messages/${messageId}`, {
+                    method: 'DELETE'
+                });
+
+                if (data.rateLimit && data.rateLimit.remaining === '0') {
+                    const waitTime = (parseInt(data.rateLimit.reset) * 1000) - Date.now();
+                    if (waitTime > 0) {
+                        await sleep(waitTime);
+                        return await deleteMessage(channelId, messageId);
+                    }
+                }
+
+                return data.success;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        function stopDeleting() {
+            shouldStop = true;
+            addLog('⏸️ جاري إيقاف العملية...', 'warning');
+        }
+
+        function updateProgress(current, total) {
+            const percentage = Math.round((current / total) * 100);
+            document.getElementById('progressFill').style.width = percentage + '%';
+            document.getElementById('progressFill').textContent = percentage + '%';
+            document.getElementById('statusText').textContent = `جاري معالجة ${current} من ${total} محادثة`;
+        }
+
+        function updateStats() {
+            document.getElementById('totalDMs').textContent = stats.totalDMs;
+            document.getElementById('selectedCount').textContent = stats.selected;
+            document.getElementById('deletedCount').textContent = stats.deleted;
+        }
+
+        function showUserSelection() {
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('userSelection').style.display = 'block';
+            document.getElementById('filterSection').style.display = 'block';
+        }
+
+        function addLog(message, type = 'info') {
+            const log = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            
+            const time = new Date().toLocaleTimeString('ar-SA', { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit' 
+            });
+            entry.textContent = `[${time}] ${message}`;
+            
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+    </script>
+</body>
+</html>

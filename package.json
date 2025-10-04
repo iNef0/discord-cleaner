@@ -1,0 +1,15 @@
+{
+  "name": "discord-cleaner",
+  "version": "1.0.0",
+  "description": "Discord DM Cleaner with OAuth2",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "dependencies": {
+    "node-fetch": "^2.6.7"
+  },
+  "devDependencies": {
+    "@vercel/node": "^2.0.0"
+  }
+}
