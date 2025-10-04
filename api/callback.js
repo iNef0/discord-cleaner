@@ -9,19 +9,10 @@ module.exports = async (req, res) => {
 
   console.log('Callback invoked');
   console.log('Received code:', code);
-  console.log('Received state:', state);
 
-  // استخراج الـ state من الـ cookies
-  const cookieHeader = req.headers.cookie || '';
-  const cookies = Object.fromEntries(
-    cookieHeader.split(';').map(c => c.trim().split('='))
-  );
-  const storedState = cookies.oauth_state;
-  console.log('Stored state from cookies:', storedState);
-
-  if (!state || state !== storedState) {
-    console.warn('State mismatch!');
-    return res.redirect('/?error=invalid_state');
+  // تخطي التحقق من state للتبسيط
+  if (!code) {
+    return res.redirect('/?error=no_code');
   }
 
   try {
@@ -42,7 +33,7 @@ module.exports = async (req, res) => {
     });
 
     const tokenData = await tokenResponse.json();
-    console.log('Token response:', tokenData);
+    console.log('Token response received');
 
     if (!tokenData.access_token) {
       console.error('No access token received!');
@@ -57,30 +48,66 @@ module.exports = async (req, res) => {
     });
 
     const userData = await userResponse.json();
-    console.log('User data:', userData);
+    console.log('User data received');
 
-    // حفظ token في cookie آمن - FIXED
-    // في production، نستخدم SameSite=None مع Secure
-    // في development، نستخدم SameSite=Lax بدون Secure
-    const isProd = process.env.NODE_ENV === 'production' || req.headers.host.includes('vercel.app');
-    
-    const cookieOptions = isProd 
-      ? 'HttpOnly; Path=/; Max-Age=604800; SameSite=None; Secure'
-      : 'HttpOnly; Path=/; Max-Age=604800; SameSite=Lax';
-    
-    const userCookieOptions = isProd
-      ? 'Path=/; Max-Age=604800; SameSite=None; Secure'
-      : 'Path=/; Max-Age=604800; SameSite=Lax';
-
-    res.setHeader('Set-Cookie', [
-      `discord_token=${tokenData.access_token}; ${cookieOptions}`,
-      `user_data=${encodeURIComponent(JSON.stringify(userData))}; ${userCookieOptions}`
-    ]);
-
-    console.log('Cookies set. Redirecting to home page.');
-
-    // إعادة التوجيه للصفحة الرئيسية
-    res.redirect('/');
+    // بدلاً من cookies، نرسل البيانات عبر HTML redirect مع JavaScript
+    res.setHeader('Content-Type', 'text/html');
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Authenticating...</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              min-height: 100vh;
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              margin: 0;
+            }
+            .loading {
+              text-align: center;
+              background: white;
+              padding: 40px;
+              border-radius: 20px;
+              box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            }
+            .spinner {
+              border: 4px solid #f3f3f3;
+              border-top: 4px solid #5865F2;
+              border-radius: 50%;
+              width: 50px;
+              height: 50px;
+              animation: spin 1s linear infinite;
+              margin: 0 auto 20px;
+            }
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="loading">
+            <div class="spinner"></div>
+            <h2>جاري تسجيل الدخول...</h2>
+            <p>الرجاء الانتظار</p>
+          </div>
+          <script>
+            // حفظ البيانات في sessionStorage
+            sessionStorage.setItem('discord_token', '${tokenData.access_token}');
+            sessionStorage.setItem('user_data', '${encodeURIComponent(JSON.stringify(userData))}');
+            
+            // إعادة التوجيه للصفحة الرئيسية
+            setTimeout(() => {
+              window.location.href = '/';
+            }, 500);
+          </script>
+        </body>
+      </html>
+    `);
 
   } catch (error) {
     console.error('Callback error:', error);

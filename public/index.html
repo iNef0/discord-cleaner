@@ -619,40 +619,28 @@
                 return;
             }
             
-            isAuthenticating = true;
+            // التحقق من sessionStorage أولاً
+            const token = sessionStorage.getItem('discord_token');
+            const userDataStr = sessionStorage.getItem('user_data');
             
-            try {
-                console.log('Checking auth status...');
-                const response = await fetch(`${API_BASE}/user?endpoint=users/@me`, {
-                    credentials: 'include',
-                    // إضافة timeout للطلب
-                    signal: AbortSignal.timeout(10000)
-                });
-                
-                console.log('Auth response status:', response.status);
-                
-                if (response.ok) {
-                    const userData = await response.json();
-                    console.log('User data received:', userData);
-                    
-                    if (userData.error) {
-                        throw new Error(userData.error);
-                    }
-                    
+            if (token && userDataStr) {
+                console.log('Using sessionStorage data');
+                try {
+                    const userData = JSON.parse(decodeURIComponent(userDataStr));
+                    userDataCache = userData;
                     showUserInfo(userData);
-                    // انتظر قليلاً قبل تحميل المحادثات
                     await sleep(500);
                     await loadDMChannels();
-                } else {
-                    console.log('Not authenticated, showing login');
-                    showLoginSection();
+                    return;
+                } catch (e) {
+                    console.error('Error parsing user data:', e);
+                    sessionStorage.clear();
                 }
-            } catch (error) {
-                console.error('Auth check error:', error);
-                showLoginSection();
-            } finally {
-                isAuthenticating = false;
             }
+            
+            // إذا ما في بيانات محفوظة، نظهر صفحة تسجيل الدخول
+            console.log('No auth data found, showing login');
+            showLoginSection();
         }
 
         function loginWithDiscord() {
@@ -660,6 +648,9 @@
         }
 
         function logout() {
+            // مسح الـ cache
+            userDataCache = null;
+            userId = null;
             window.location.href = `${API_BASE}/logout`;
         }
 
@@ -704,6 +695,8 @@
         async function discordAPI(endpoint, options = {}) {
             const url = `${API_BASE}/user?endpoint=${encodeURIComponent(endpoint)}`;
             
+            console.log('Calling Discord API:', endpoint);
+            
             const response = await fetch(url, {
                 ...options,
                 credentials: 'include',
@@ -713,17 +706,36 @@
                 }
             });
 
-            return response.json();
+            console.log('Discord API response status:', response.status);
+            
+            const data = await response.json();
+            console.log('Discord API data:', data);
+            
+            // إذا كان هناك خطأ في المصادقة، ارمِ error
+            if (!response.ok && (response.status === 401 || data.error)) {
+                throw new Error(data.error || `HTTP ${response.status}`);
+            }
+            
+            return data;
         }
 
         async function loadDMChannels() {
             addLog('🔍 جاري تحميل المحادثات الخاصة...', 'info');
 
             try {
+                console.log('Loading DM channels...');
                 const channels = await discordAPI('users/@me/channels');
+
+                console.log('Channels response:', channels);
 
                 if (channels.error) {
                     throw new Error(channels.error);
+                }
+
+                // التحقق من أن الـ response هو array
+                if (!Array.isArray(channels)) {
+                    console.error('Invalid channels response:', channels);
+                    throw new Error('Invalid response format');
                 }
 
                 dmChannels = channels.filter(ch => {
@@ -744,8 +756,13 @@
                 renderUserList();
                 addLog(`✅ تم تحميل ${dmChannels.length} محادثة خاصة`, 'success');
             } catch (error) {
+                console.error('Error loading DM channels:', error);
                 addLog(`❌ خطأ في تحميل المحادثات: ${error.message}`, 'error');
+                
                 if (error.message.includes('401') || error.message.includes('Token') || error.message.includes('expired')) {
+                    // مسح الـ cache وإظهار Login
+                    userDataCache = null;
+                    userId = null;
                     showLoginSection();
                 }
             }
