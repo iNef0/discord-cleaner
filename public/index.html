@@ -601,6 +601,7 @@
         let selectedChannels = [];
         let timeFilter = 'all';
         let shouldStop = false;
+        let isAuthenticating = false; // منع التحقق المتكرر
         let stats = {
             totalDMs: 0,
             selected: 0,
@@ -611,24 +612,45 @@
         document.addEventListener('DOMContentLoaded', checkAuthStatus);
 
         async function checkAuthStatus() {
+            // منع التحقق المتكرر
+            if (isAuthenticating) {
+                console.log('Already authenticating, skipping...');
+                return;
+            }
+            
+            isAuthenticating = true;
+            
             try {
+                console.log('Checking auth status...');
                 const response = await fetch(`${API_BASE}/user?endpoint=users/@me`, {
-                    credentials: 'include'
+                    credentials: 'include',
+                    // إضافة timeout للطلب
+                    signal: AbortSignal.timeout(10000)
                 });
+                
+                console.log('Auth response status:', response.status);
                 
                 if (response.ok) {
                     const userData = await response.json();
+                    console.log('User data received:', userData);
+                    
                     if (userData.error) {
                         throw new Error(userData.error);
                     }
+                    
                     showUserInfo(userData);
+                    // انتظر قليلاً قبل تحميل المحادثات
+                    await sleep(500);
                     await loadDMChannels();
                 } else {
+                    console.log('Not authenticated, showing login');
                     showLoginSection();
                 }
             } catch (error) {
-                console.log('User not authenticated:', error);
+                console.error('Auth check error:', error);
                 showLoginSection();
+            } finally {
+                isAuthenticating = false;
             }
         }
 
@@ -652,7 +674,6 @@
                 const avatarUrl = `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png?size=128`;
                 document.getElementById('userAvatar').src = avatarUrl;
             } else {
-                // صورة افتراضية إذا لم يكن هناك صورة
                 const defaultAvatar = document.getElementById('userAvatar');
                 defaultAvatar.src = '';
                 defaultAvatar.style.backgroundColor = '#5865F2';
@@ -669,6 +690,9 @@
         }
 
         function showLoginSection() {
+            // لا تعرض قسم تسجيل الدخول إذا كان المستخدم يحاول المصادقة
+            if (isAuthenticating) return;
+            
             document.getElementById('loginSection').style.display = 'block';
             document.getElementById('userInfo').style.display = 'none';
             document.getElementById('filterSection').style.display = 'none';
@@ -676,7 +700,6 @@
             document.getElementById('emptyState').style.display = 'block';
         }
 
-        // دالة للاتصال بـ Discord عبر السيرفر
         async function discordAPI(endpoint, options = {}) {
             const url = `${API_BASE}/user?endpoint=${encodeURIComponent(endpoint)}`;
             
@@ -721,8 +744,7 @@
                 addLog(`✅ تم تحميل ${dmChannels.length} محادثة خاصة`, 'success');
             } catch (error) {
                 addLog(`❌ خطأ في تحميل المحادثات: ${error.message}`, 'error');
-                if (error.message.includes('401') || error.message.includes('Token')) {
-                    // إذا كان التوكن منتهي الصلاحية، إظهار قسم تسجيل الدخول
+                if (error.message.includes('401') || error.message.includes('Token') || error.message.includes('expired')) {
                     showLoginSection();
                 }
             }
